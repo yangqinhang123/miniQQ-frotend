@@ -1,3 +1,4 @@
+import type { ChatHistoryType } from "@/views/Dialog/api";
 import { EventDispatcher } from "../EventDispatcher/index";
 
 export class WebSocketClient extends EventDispatcher {
@@ -144,4 +145,16 @@ export class WebSocketClient extends EventDispatcher {
     clearInterval(this.heartbeatTimer);
     this.heartbeatTimer = undefined;
   }
+}
+
+// export default new WebSocketClient("ws://192.168.121.176:3000/mySocketUrl");
+
+export interface ChatMsgType {
+  type: "chat";
+  data: ChatHistoryType;
+}
+
+export interface MsgType {
+  type: "chat" | "tip";
+  data: any;
 }

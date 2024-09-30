@@ -1,5 +1,5 @@
 import { showNotify, type NotifyType, type NotifyOptions } from "vant";
-import { ElMessage } from "element-plus"
+import { ElMessage } from "element-plus";
 // type NoticeType = 'success' | ''
 // /**弹窗，展示信息;
 //  * @param message 要提示的文字，或者一个ReactNode
@@ -16,7 +16,7 @@ import { ElMessage } from "element-plus"
 //   }
 // ) {
 //   console.log('提示');
-  
+
 //   showNotify(
 //     mergeObj(
 //       {
@@ -30,19 +30,22 @@ import { ElMessage } from "element-plus"
 //   );
 // }
 
-
-/**使用element弹窗，展示信息 
+/**使用element弹窗，展示信息
  * @param message 要提示的文字
  * @param type 类型，默认"success"。 "error"红色 | "info"灰色 | "success"绿色 |"warning"橙色
  * @param duration 持续时间，单位ms，默认2000
  */
-export function showTip(message: string, type: "success" | "error" | "info" | "warning" = "success", duration: number = 2000) {
-    ElMessage({
-        message,
-        type,
-        duration,
-        showClose: true,
-    })
+export function showTip(
+  message: string,
+  type: "success" | "error" | "info" | "warning" = "success",
+  duration: number = 2000
+) {
+  ElMessage({
+    message,
+    type,
+    duration,
+    showClose: true,
+  });
 }
 
 type Obj = Record<any, any>;
@@ -77,4 +80,12 @@ export const jsonParse = <T>(json: string): T => {
 export const sliceStr = (str: string, maxLength: number, tip = "") => {
   if (str.length < maxLength) return str;
   else return str.slice(0, maxLength) + tip;
+};
+
+export const generateUUID = () => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0; // 生成随机数
+    const v = c === "x" ? r : (r & 0x3) | 0x8; // 根据规则替换
+    return v.toString(16);
+  });
 };

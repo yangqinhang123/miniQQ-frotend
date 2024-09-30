@@ -46,13 +46,17 @@ const state = reactive({
 const isAnimation = ref(true);
 const register = async () => {
   isAnimation.value = false;
-  await registerReq(
+  const res = await registerReq(
     state.user_name,
     state.user_pwd,
     state.user_email,
     state.nickName
   );
-  showTip('注册成功！去登录吧～')
+  if (res.isOk) {
+    showTip(res.msg, "success");
+  } else {
+    showTip(res.msg, "warning");
+  }
   routerTo(RouterName.LOGIN);
 };
 

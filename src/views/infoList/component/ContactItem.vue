@@ -9,17 +9,33 @@
 
 <script setup lang="ts">
 import { RouterName } from "@/router";
-import { routerTo } from "@/util/routerTo";
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
+// import { routerTo } from "@/util/routerTo";
 interface contactItemPropsType {
   /**联系人头像 */
   avatarUrl: string;
-  /**联系人名字 */
+  /**联系人nic */
   contactName: string;
+  /**联系人qq号 */
+  contactUserName: string;
 }
-const { avatarUrl, contactName } = defineProps<contactItemPropsType>();
+const router = useRouter();
+const { avatarUrl, contactName, contactUserName } =
+  defineProps<contactItemPropsType>();
+const routerTo = (routerName: string) => {
+  router.push({
+    name: routerName,
+    query: {
+      nickName: contactName,
+      user_name: contactUserName,
+      user_avatar: avatarUrl,
+    },
+  });
+};
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
 .contact-item {
   width: 100%;
   height: 90px;

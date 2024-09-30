@@ -2,21 +2,45 @@
   <div class="chat-room" @touchstart="recordStartPos" @touchend="handleMoveEnd">
     <div class="room-header" @click="router.back()">
       <IconBack size="20px" color="#050505" />
-      <span>杨钦航</span>
+      <span>{{ target_nickName }}</span>
     </div>
     <div class="room-main">
-      <ul class="chat_list-container">
+      <ul class="chat_list-container" ref="chat_list_container">
         <li
-          v-for="(item, index) in chatInfoList"
+          v-for="(item, index) in finalChatList"
           :key="index"
-          :class="`chat-item ${item.user === userName ? 'reverse' : ''}`"
+          :class="`chat-item ${
+            item.from === userState?.user_name ? 'reverse' : ''
+          }`"
         >
           <div class="avatar-container">
-            <el-avatar :size="50" src="/images/sanye.jpg" fit="fill" />
+            <el-avatar
+              :size="50"
+              :src="
+                item.from === userState?.user_name
+                  ? userState.user_avatar
+                  : target_userAvatar
+              "
+              fit="fill"
+            />
           </div>
           <div class="chat_content-container">
-            <div class="name">{{ item.user }}</div>
-            <div class="content">{{ item.content }}</div>
+            <div class="name">
+              {{
+                item.from === userState?.user_name
+                  ? userState.nickName
+                  : target_nickName
+              }}
+            </div>
+            <div
+              class="content"
+              @touchstart="handleChatItemTouchStart(item, $event)"
+              @touchend="handleChatItemTouchEnd(item, $event)"
+              @touchcancel="handleChatItemTouchCancel(item, $event)"
+              @contextmenu="handleTextMenu"
+            >
+              {{ item.msg }}
+            </div>
           </div>
         </li>
       </ul>
@@ -39,15 +63,94 @@
       <div class="other-part"></div>
     </div>
   </div>
+  <el-drawer
+    v-model="drawer"
+    :title="currentSelectChatItem?.msg"
+    direction="btt"
+  >
+    <div>
+      <div @click="deleChatItem(currentSelectChatItem)">删除</div>
+    </div>
+  </el-drawer>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import IconBack from "@/components/icons/IconBack.vue";
-import { ref } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  ref,
+  watch,
+  watchEffect,
+} from "vue";
+import { useUserStore } from "@/store/userStore";
+import { onMounted } from "vue";
+import { WebSocketClient, type ChatMsgType } from "@/util/WebSocket/index";
+import { useRoute } from "vue-router";
+import { storeToRefs } from "pinia";
+import { generateUUID, jsonParse, showTip } from "@/util";
+import { StateKey, useChatStore } from "@/store/useChatStore";
+import { deleChatReq, storageChat, type ChatHistoryType } from "./api";
+import { initWs } from "@/util/initWs";
+
+const store = useUserStore();
+const chatStore = useChatStore();
+const route = useRoute();
+
+const { setUserState } = store;
+const { userState } = storeToRefs(store);
+const {
+  setChatState,
+  clearCurrentChatState,
+  getAndSetChatStateHistory,
+  setWsInstance,
+} = chatStore;
+const { chatStateHistory, currentChatState, ws_instance } =
+  storeToRefs(chatStore);
+const drawer = ref(false);
+const longPressTimeoutId = ref<number | null>(null);
+const currentSelectChatItem = ref<ChatHistoryType | null>(null);
+
+onMounted(async () => {
+  // await setUserState();
+  nextTick(() => {
+    chat_list_container.value!.scrollTop =
+      chat_list_container.value!.scrollHeight;
+  });
+  // if (userState.value) {
+  //   getAndSetChatStateHistory(userState.value.user_name);
+  // }
+});
+// watch(userState, (newUser) => {
+//   if (!newUser) {
+//     return;
+//   }
+//   initWs(newUser.user_name);
+// });
+onBeforeUnmount(async () => {
+  // if (!currentChatState.value) {
+  //   return;
+  // }
+
+  // console.log(currentChatState.value[target_userName]);
+
+  // await storageChat(currentChatState.value[target_userName]);
+  if (currentChatState.value) {
+    await storageChat(currentChatState.value[target_userName]);
+  }
+  clearCurrentChatState();
+  if (userState.value) {
+    getAndSetChatStateHistory(userState.value.user_name);
+  }
+});
 const router = useRouter();
 const input = ref("");
-const userName = ref("杨钦航");
+const chat_list_container = ref<HTMLUListElement | null>(null);
+const target_userName: string = route.query.user_name as string;
+const target_nickName: string = route.query.nickName as string;
+const target_userAvatar: string = route.query.user_avatar as string;
 
 /**手指开始触摸时的x坐标位置 */
 let startX = 0;
@@ -77,6 +180,67 @@ const handleMoveEnd = (event: TouchEvent) => {
   const endTime = Date.now();
   isRouteBack(startX, moveEndX, startY, moveEndY, endTime - startTime);
 };
+const handleChatItemTouchStart = (
+  chatItem: ChatHistoryType,
+  event: TouchEvent
+) => {
+  // 在 touchstart 时设置一个定时器
+  longPressTimeoutId.value = setTimeout(() => {
+    event.stopPropagation();
+    event.preventDefault();
+    // 长按触发的逻辑
+    console.log("长按事件触发");
+    longPressCallBack(chatItem);
+    event.preventDefault();
+  }, 500); // 500 毫秒为长按的时间，可以根据需要调整
+};
+const handleChatItemTouchEnd = (
+  chatItem: ChatHistoryType,
+  event: TouchEvent
+) => {
+  event.stopPropagation();
+  event.preventDefault();
+  clearTimeout(longPressTimeoutId.value as number);
+};
+const handleChatItemTouchCancel = (
+  chatItem: ChatHistoryType,
+  event: TouchEvent
+) => {
+  event.stopPropagation();
+  event.preventDefault();
+  clearTimeout(longPressTimeoutId.value as number);
+};
+const handleTextMenu = (e: MouseEvent) => {
+  e.preventDefault();
+};
+const longPressCallBack = (chatItem: ChatHistoryType) => {
+  drawer.value = true;
+  currentSelectChatItem.value = chatItem;
+};
+const deleChatItem = (chatItem: ChatHistoryType | null) => {
+  if (!chatItem) {
+    return;
+  }
+  const thisHistoryState = chatStateHistory.value?.[target_userName];
+  const thisCurrentChatState = currentChatState.value?.[target_userName];
+  thisCurrentChatState?.forEach((item) => {
+    if (item.id === chatItem.id) {
+      item.is_del = 1;
+    }
+  });
+  thisHistoryState?.forEach(async (item) => {
+    if (item.id === chatItem.id) {
+      deleChatReq(item.id);
+      if (currentChatState.value) {
+        await storageChat(currentChatState.value[target_userName]);
+      }
+      clearCurrentChatState();
+      if (userState.value) {
+        getAndSetChatStateHistory(userState.value.user_name);
+      }
+    }
+  });
+};
 /**
  * 判断是否要回退到上一个路由
  * @param startX 手指触摸开始的x坐标
@@ -98,67 +262,73 @@ const isRouteBack = (
     router.back();
   }
 };
-const chatInfoList = ref([
-  {
-    user: "杨钦航",
-    content: "你好！今天过得怎么样？",
+
+// const finalChatList = computed(() => {
+//   const thisHistoryState = chatStateHistory.value?.[target_userName];
+//   const thisCurrentChatState = currentChatState.value?.[target_userName];
+//   return [...(thisHistoryState || []), ...(thisCurrentChatState || [])].filter(
+//     (item) => !item.is_del
+//   );
+// });
+const finalChatList = ref<ChatHistoryType[]>([]);
+watchEffect(() => {
+  const thisHistoryState = chatStateHistory.value?.[target_userName];
+  const thisCurrentChatState = currentChatState.value?.[target_userName];
+  console.log('变了');
+  
+  finalChatList.value = [
+    ...(thisHistoryState || []),
+    ...(thisCurrentChatState || []),
+  ].filter((item) => !item.is_del);
+});
+
+// watch(() => chatStateHistory.value, (newValue, oldValue) => {
+//   console.log('变化了', newValue, oldValue);
+
+// })
+
+watch(
+  finalChatList,
+  () => {
+    console.log(111);
+
+    console.log(chat_list_container.value);
+    nextTick(() => {
+      chat_list_container.value!.scrollTop =
+        chat_list_container.value!.scrollHeight;
+    });
+    // chat_list_container.value!.scrollIntoView({
+    //   behavior: "smooth",
+    //   // inline: "nearest",
+    //   block: 'end'
+    // });
   },
-  {
-    user: "杨钦航",
-    content: "最近有没有看过什么好电影？",
-  },
-  {
-    user: "杨钦航",
-    content: "听说你去旅行了，哪里好玩？",
-  },
-  {
-    user: "杨钦航",
-    content: "你喜欢的音乐是什么类型的？",
-  },
-  {
-    user: "杨钦航",
-    content: "最近在忙什么呢？",
-  },
-  {
-    user: "杨钦航",
-    content: "有什么好书推荐吗？",
-  },
-  {
-    user: "杨钦航",
-    content: "周末有什么计划吗？",
-  },
-  {
-    user: "杨钦航",
-    content: "最近的天气真不错，你觉得呢？",
-  },
-  {
-    user: "杨钦航",
-    content: "最近的天气真不错，你觉得呢？",
-  },
-  {
-    user: "杨钦航",
-    content: "喜欢喝咖啡还是茶？",
-  },
-  {
-    user: "杨钦航",
-    content: "对于新出的游戏，你有什么看法？",
-  },
-  {
-    user: "杨钦航",
-    content:
-      "嗨！最近我在尝试学习一种新的乐器，虽然一开始有点困难，但我发现音乐真的很治愈，你有没有尝试过学习乐器的经历？",
-  },
-  {
-    user: "杨钦航",
-    content: "呵呵\n你好",
-  },
-]);
+  { deep: true }
+);
 
 const send = () => {
-  chatInfoList.value.push({
-    user: "杨钦航",
-    content: input.value,
-  });
+  if (!userState.value) {
+    showTip("无法获取当前用户", "error");
+    return;
+  }
+  if (!ws_instance) {
+    showTip("未初始化发送消息函数");
+    return;
+  }
+  const msg = {
+    type: "chat",
+    data: {
+      id: generateUUID(),
+      create_time: Date.now(),
+      from: userState.value.user_name,
+      to: target_userName,
+      msg: input.value,
+      is_del: 0,
+    },
+  } as ChatMsgType;
+  ws_instance.value?.send(JSON.stringify(msg));
+  setChatState(msg.data.to, msg.data, StateKey.CURRENT_CHAT_STATE);
+  input.value = "";
 };
 </script>
 
@@ -229,6 +399,7 @@ const send = () => {
     flex-direction: column;
     gap: 15px;
     padding: 20px 0;
+    scroll-behavior: smooth;
   }
   .chat-item {
     width: 100%;

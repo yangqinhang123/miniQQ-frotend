@@ -1,3 +1,4 @@
+import { showTip } from "@/util";
 import {
   createRouter,
   createWebHistory,
@@ -79,6 +80,21 @@ export const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+});
+//路由守卫 变化前
+router.beforeEach((to, from, next) => {
+  if (to.path == "/") next();
+  else if (to.name == "404") next();
+  else if (to.name === RouterName.LOGIN) next();
+  else if (to.matched.length === 0) {
+    //如果未匹配到路由
+    console.log("未匹配到路由，来自", from.path, "去往", to.path);
+    next({ name: "404" }); //去往404页面
+  } else if (!localStorage.getItem("token")) {
+    //没有token就去登录   //完成登录模块的API对接后，请把此处解开
+    showTip("请先登录！", "error");
+    next("/");
+  } else next(); //如果匹配到正确跳转
 });
 
 export default router;

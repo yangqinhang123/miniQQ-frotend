@@ -4,57 +4,50 @@
     <ContactItem
       v-for="(i, index) in contactList"
       :key="index"
-      :avatar-url="i.avatarUrl"
-      :contact-name="i.contactName"
+      :avatar-url="i.user_avatar"
+      :contact-name="i.nickName"
+      :contact-user-name="i.user_name"
     />
   </ul>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import ContactItem from "./component/ContactItem.vue";
-interface ContactItemType {
-  avatarUrl: string;
-  contactName: string;
-}
-const contactList = ref<ContactItemType[]>([
-  {
-    avatarUrl: "/images/sanye.jpg",
-    contactName: "杨钦航",
+import { queryContactListReq, type QueryContactListResType } from "./api";
+import { useUserStore } from "@/store/userStore";
+import { storeToRefs } from "pinia";
+import { showTip } from "@/util";
+
+const store = useUserStore();
+const { userState } = storeToRefs(store);
+const contactList = ref<QueryContactListResType[]>([]);
+watch(
+  userState,
+  async () => {
+    try {
+      if (!userState.value) {
+        console.log("名字空空");
+        contactList.value = [];
+        return;
+      }
+      console.log('请求');
+      
+      const res = await queryContactListReq();
+      contactList.value = res;
+    } catch (error) {
+      console.log(error);
+      showTip("获取联系人列表失败", "error");
+    }
   },
-  {
-    avatarUrl: "/images/sanye.jpg",
-    contactName: "杨钦航",
-  },
-  {
-    avatarUrl: "/images/sanye.jpg",
-    contactName: "杨钦航",
-  },
-  {
-    avatarUrl: "/images/sanye.jpg",
-    contactName: "杨钦航",
-  },
-  {
-    avatarUrl: "/images/sanye.jpg",
-    contactName: "杨钦航",
-  },
-  {
-    avatarUrl: "/images/sanye.jpg",
-    contactName: "杨钦航",
-  },
-  {
-    avatarUrl: "/images/sanye.jpg",
-    contactName: "杨钦航",
-  },
-  {
-    avatarUrl: "/images/sanye.jpg",
-    contactName: "杨钦航",
-  },
-]);
+  { immediate: true }
+);
+onMounted(async () => {
+  console.log("infolist.vue");
+});
 </script>
 
 <style lang="less" scoped>
-
 .infinite-list {
   height: 100%;
   padding: 0;

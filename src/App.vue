@@ -1,17 +1,54 @@
 <script setup lang="ts">
+import { useUserStore } from "./store/userStore";
 import { RouterView } from "vue-router";
 import { useGetTransitionName } from "./hooks/useGetTransitionName";
-import { onMounted } from "vue";
+import { nextTick, onBeforeUnmount, onMounted } from "vue";
 import { WebSocketClient } from "./util/WebSocket";
+import localStore from "./util/LocalStore";
+import { useRouter, useRoute } from "vue-router";
+import { storeToRefs } from "pinia";
+import { initWs } from "./util/initWs";
+import { RouterName } from "./router";
+import pinia from "./store/store";
+import { useChatStore } from "./store/useChatStore";
+import { logout } from "./util/logout";
 const { transitionName } = useGetTransitionName();
+const router = useRouter();
+const route = useRoute();
+const store = useUserStore(pinia);
+const chatStore = useChatStore(pinia);
+const { userState } = storeToRefs(store);
+const { setUserState } = store;
+const { getAndSetChatStateHistory } = chatStore;
+onMounted(async () => {
+  if (localStore.getItem("token")) {
+    console.log("app.vue - 已登录");
 
-onMounted(() => {
-  const ws = new WebSocketClient("ws://localhost:3000/mySocketUrl");
-  ws.connect();
+    if (!userState.value) {
+      await setUserState();
+      nextTick(() => {
+        console.log(userState.value!.user_name);
+        initWs(userState.value!.user_name);
+        getAndSetChatStateHistory(userState.value!.user_name);
+      });
+    } else {
+      console.log(userState.value.user_name);
 
-  ws.onmessage((e: MessageEvent<any>) => {
-    console.log(e.data);
-  });
+      initWs(userState.value.user_name);
+      getAndSetChatStateHistory(userState.value.user_name);
+    }
+    router.push({ name: RouterName.INFO });
+  }
+  //  else {
+  //   console.log("app.vue - 未登录");
+  //   if (route.path === "/") {
+  //     console.log(111);
+      
+  //     return;
+  //   } else {
+  //     window.location.assign("/login");
+  //   }
+  // }
 });
 </script>
 

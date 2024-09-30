@@ -15,6 +15,7 @@ import type { OtherDownloadReq } from "@/api/types/other";
 import localStore from "../LocalStore";
 import { ResCode, type ResponseData } from "./code";
 import { next_reqBaseURL } from "@/lib/config";
+import { logout } from "../logout";
 /**前端专属的类 */
 class FrontRequest extends MyRequest {
   /**前端部分 - 请求blob数据并下载 - get方式
@@ -78,7 +79,7 @@ const request = new FrontRequest(
     if (urlArr[1] !== "log") {
       // 不是日志记录的就弹窗 （日志记录统一以 /log 开头的路径）
       const { showTip: ifShowTip = true, tipText = "加载中" } = config;
-      if (ifShowTip) showTip(tipText, "warning"); //添加弹窗
+      // if (ifShowTip) showTip(tipText, "warning"); //添加弹窗
     }
 
     //请求拦截器，添加token
@@ -107,8 +108,8 @@ const request = new FrontRequest(
             break;
           case ResCode.UNAUTHORIZED: //无整个权限
             setTimeout(() => {
-              localStore.removeItem("token");
-              // window.location.assign(YYportal);
+              // localStore.removeItem("token");
+              logout()
               window.location.assign("/");
             }, 1000);
             break;

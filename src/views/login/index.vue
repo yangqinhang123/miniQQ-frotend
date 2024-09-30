@@ -19,24 +19,39 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { nextTick, onMounted, reactive, ref } from "vue";
 import { routerTo } from "@/util/routerTo";
 import { RouterName } from "@/router";
 import { loginReq } from "./api";
 import { showTip } from "@/util";
 import localStore from "@/util/LocalStore";
+import { useUserStore } from "@/store/userStore";
+import { useChatStore } from "@/store/useChatStore";
+import { initWs } from "@/util/initWs";
 
 const state = reactive({
   user_name: "",
   user_pwd: "",
 });
 const isAnimation = ref(true);
+const store = useUserStore();
+const chatStore = useChatStore();
+const { setUserState } = store;
+const { getAndSetChatStateHistory } = chatStore;
 const login = async () => {
   isAnimation.value = false;
   try {
     const res = await loginReq(state.user_name, state.user_pwd);
-    localStore.setItem("token", res.token);
-    routerTo(RouterName.INFO);
+    if (res.isOk && res.token) {
+      showTip(res.msg);
+      localStore.setItem("token", res.token);
+      await setUserState();
+      initWs(state.user_name);
+      await getAndSetChatStateHistory(state.user_name);
+      routerTo(RouterName.INFO);
+    } else {
+      showTip(res.msg, "warning");
+    }
   } catch (error) {
     showTip("登录失败", "error");
   }
@@ -45,6 +60,13 @@ const toRegister = () => {
   isAnimation.value = false;
   routerTo(RouterName.REGISTER);
 };
+
+onMounted(() => {
+  //已经有token了就不要再来烦我了
+  if (localStore.getItem('token')) {
+    routerTo(RouterName.INFO)
+  }
+})
 </script>
 
 <style lang="less" scoped>

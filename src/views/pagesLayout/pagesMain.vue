@@ -5,7 +5,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import { RouterView } from "vue-router";
 </script>
 
@@ -17,6 +16,4 @@ import { RouterView } from "vue-router";
   overflow: auto;
   border-radius: 20px 20px 0 0;
 }
-
-
 </style>
