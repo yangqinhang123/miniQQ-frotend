@@ -1,7 +1,7 @@
 <template>
   <div class="page-footer">
     <div
-      @click="routerTo(RouterName.INFO)"
+      @click="router.push({ name: RouterName.INFO })"
       :class="
         router.currentRoute.value.name === RouterName.INFO ? 'active' : ''
       "
@@ -17,7 +17,7 @@
       消息
     </div>
     <div
-      @click="routerTo(RouterName.CHANNELS)"
+      @click="router.push({ name: RouterName.CHANNELS })"
       :class="
         router.currentRoute.value.name === RouterName.CHANNELS ? 'active' : ''
       "
@@ -33,7 +33,7 @@
       频道
     </div>
     <div
-      @click="routerTo(RouterName.CONTACT)"
+      @click="router.push({ name: RouterName.CONTACT })"
       :class="
         router.currentRoute.value.name === RouterName.CONTACT ? 'active' : ''
       "
@@ -49,7 +49,7 @@
       联系人
     </div>
     <div
-      @click="routerTo(RouterName.LIFE)"
+      @click="router.push({ name: RouterName.LIFE })"
       :class="
         router.currentRoute.value.name === RouterName.LIFE ? 'active' : ''
       "
@@ -75,8 +75,6 @@ import IconLianXiRen from "@/components/icons/IconLianXiRen.vue";
 import IconDongTai from "@/components/icons/IconDongTai.vue";
 import { RouterLink, useRouter } from "vue-router";
 import { RouterName } from "@/router";
-import { ref } from "vue";
-import { routerTo } from "@/util/routerTo";
 const router = useRouter();
 </script>
 

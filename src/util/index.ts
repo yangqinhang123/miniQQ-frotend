@@ -45,6 +45,7 @@ export function showTip(
     type,
     duration,
     showClose: true,
+    offset: 128
   });
 }
 

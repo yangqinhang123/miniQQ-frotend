@@ -24,16 +24,32 @@
             @click="setCurrentSelected(i)"
           >
             <el-avatar :size="30" :src="i.user_avatar" fit="fill" />
-            <div>{{ i.nickName }}</div>
+            <div>
+              <span>
+                {{
+                  (i.nickName + `(${i.user_name})`).substring(
+                    0,
+                    (i.nickName + `(${i.user_name})`).indexOf(state.input)
+                  )
+                }}
+              </span>
+              <span style="color: #0091ff">{{ state.input }}</span>
+              <span>
+                {{
+                  (i.nickName + `(${i.user_name})`).substring(
+                    (i.nickName + `(${i.user_name})`).indexOf(state.input) +
+                      state.input.length
+                  )
+                }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="handleClose">退出</el-button>
-          <el-button type="primary" @click="addContact">
-            确认添加
-          </el-button>
+          <el-button type="primary" @click="addContact"> 确认添加 </el-button>
         </div>
       </template>
     </el-dialog>
@@ -41,18 +57,24 @@
       <IconSearch size="20px" />
       搜索
     </div>
+    <div class="friend-list">
+      <ContactList :gap="10" :router-name="RouterName.DETAIL" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import IconSearch from "@/components/icons/IconSearch.vue";
-import { reactive, ref } from "vue";
+import { inject, reactive, ref } from "vue";
 import { ElMessageBox } from "element-plus";
 import { debounce } from "@/hooks/debounce";
 import { addContactReq, searchUser, type SearchUserResType } from "./api";
 import { showTip } from "@/util";
 import { useUserStore } from "@/store/userStore";
 import { storeToRefs } from "pinia";
+import ContactList from "../infoList/component/ContactList.vue";
+import { RouterName } from "@/router";
+import { contactListKey, type ContactListFlagType } from "@/util/provideKey";
 const store = useUserStore();
 type state = {
   input: string;
@@ -69,6 +91,9 @@ const currentSelected = ref<SearchUserResType | null>(null);
 const setCurrentSelected = (value: SearchUserResType | null) => {
   currentSelected.value = value;
 };
+const { setIsNeedToUpdateContactList } = inject(
+  contactListKey
+) as ContactListFlagType;
 const handleClose = () => {
   state.input = "";
   setCurrentSelected(null);
@@ -91,7 +116,7 @@ const handleInput = async () => {
   }
 };
 
-const handleInputWithDebounce = debounce(handleInput, 1200);
+const handleInputWithDebounce = debounce(handleInput, 600);
 
 const addContact = async () => {
   try {
@@ -101,13 +126,14 @@ const addContact = async () => {
       currentSelected.value.user_name
     );
     if (res.isOk) {
-      showTip(res.msg, 'success')
-    }else {
-      showTip(res.msg, 'warning')
+      showTip(res.msg, "success");
+      setIsNeedToUpdateContactList(true);
+    } else {
+      showTip(res.msg, "warning");
     }
   } catch (error) {
     console.log(error);
-    showTip('添加失败', 'error')
+    showTip("添加失败", "error");
   }
 };
 </script>
@@ -117,6 +143,9 @@ const addContact = async () => {
   height: 100%;
   background-color: #fff;
   padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   .search {
     width: 100%;
     height: 30px;
@@ -126,6 +155,15 @@ const addContact = async () => {
     color: #8a8a8a;
     gap: 10px;
     background-color: #e2f0fe;
+  }
+  .friend-list {
+    width: 100%;
+    height: calc(100%-30px-30px-20px);
+    background-color: #e2f0fe;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: auto;
   }
 
   .search-res {

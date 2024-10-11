@@ -109,13 +109,14 @@ const request = new FrontRequest(
           case ResCode.UNAUTHORIZED: //无整个权限
             setTimeout(() => {
               // localStore.removeItem("token");
-              logout()
-              window.location.assign("/");
+              logout();
+              // window.location.assign("/");
             }, 1000);
             break;
           case ResCode.FORBIDDEN: //无模块权限
             setTimeout(() => {
-              window.location.assign("/");
+              logout();
+              // window.location.assign("/");
             }, 1000);
             break;
           case ResCode.SERVER_ERROR: //系统错误

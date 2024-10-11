@@ -14,8 +14,6 @@ export interface user {
   user_avatar: string;
 }
 export const useUserStore = defineStore("user", () => {
-    console.log(111);
-    
   const userState = ref<user | null>(null);
   const setUserState = async () => {
     try {

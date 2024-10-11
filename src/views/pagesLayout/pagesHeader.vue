@@ -221,6 +221,7 @@ const setUserAvatar = async () => {
   // height: 60px;
   flex: 1;
   padding: 2px;
+  padding-top: 40px;
   .user {
     display: flex;
     gap: 3px;

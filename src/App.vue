@@ -2,7 +2,7 @@
 import { useUserStore } from "./store/userStore";
 import { RouterView } from "vue-router";
 import { useGetTransitionName } from "./hooks/useGetTransitionName";
-import { nextTick, onBeforeUnmount, onMounted } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { WebSocketClient } from "./util/WebSocket";
 import localStore from "./util/LocalStore";
 import { useRouter, useRoute } from "vue-router";
@@ -12,6 +12,7 @@ import { RouterName } from "./router";
 import pinia from "./store/store";
 import { useChatStore } from "./store/useChatStore";
 import { logout } from "./util/logout";
+import { contactListKey } from "./util/provideKey";
 const { transitionName } = useGetTransitionName();
 const router = useRouter();
 const route = useRoute();
@@ -21,6 +22,7 @@ const { userState } = storeToRefs(store);
 const { setUserState } = store;
 const { getAndSetChatStateHistory } = chatStore;
 onMounted(async () => {
+  
   if (localStore.getItem("token")) {
     console.log("app.vue - 已登录");
 
@@ -43,13 +45,29 @@ onMounted(async () => {
   //   console.log("app.vue - 未登录");
   //   if (route.path === "/") {
   //     console.log(111);
-      
+
   //     return;
   //   } else {
   //     window.location.assign("/login");
   //   }
   // }
 });
+
+const isNeedToUpdateContactList = ref(false);
+const setIsNeedToUpdateContactList = (value: boolean) => {
+  isNeedToUpdateContactList.value = value;
+};
+
+provide(contactListKey, {
+  isNeedToUpdateContactList,
+  setIsNeedToUpdateContactList,
+});
+watch(() => transitionName.value, (newValue) => {
+  console.log('变了 --');
+  
+  console.log(newValue);
+  
+})
 </script>
 
 <template>

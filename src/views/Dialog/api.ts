@@ -6,7 +6,9 @@ export interface ChatHistoryType {
   from: string;
   to: string;
   msg: string;
-  is_del: number;
+  // is_del: number;
+  from_del: number;
+  to_del: number
 }
 
 /**存储聊天记录 -  请求参数*/

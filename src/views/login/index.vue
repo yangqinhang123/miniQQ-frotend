@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 import { nextTick, onMounted, reactive, ref } from "vue";
-import { routerTo } from "@/util/routerTo";
+// import { routerTo } from "@/util/routerTo";
 import { RouterName } from "@/router";
 import { loginReq } from "./api";
 import { showTip } from "@/util";
@@ -28,6 +28,7 @@ import localStore from "@/util/LocalStore";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/useChatStore";
 import { initWs } from "@/util/initWs";
+import { useRouter } from "vue-router";
 
 const state = reactive({
   user_name: "",
@@ -38,6 +39,7 @@ const store = useUserStore();
 const chatStore = useChatStore();
 const { setUserState } = store;
 const { getAndSetChatStateHistory } = chatStore;
+const router = useRouter();
 const login = async () => {
   isAnimation.value = false;
   try {
@@ -48,7 +50,7 @@ const login = async () => {
       await setUserState();
       initWs(state.user_name);
       await getAndSetChatStateHistory(state.user_name);
-      routerTo(RouterName.INFO);
+      router.push({ name: RouterName.INFO });
     } else {
       showTip(res.msg, "warning");
     }
@@ -58,15 +60,15 @@ const login = async () => {
 };
 const toRegister = () => {
   isAnimation.value = false;
-  routerTo(RouterName.REGISTER);
+  router.push({ name: RouterName.REGISTER });
 };
 
 onMounted(() => {
   //已经有token了就不要再来烦我了
-  if (localStore.getItem('token')) {
-    routerTo(RouterName.INFO)
+  if (localStore.getItem("token")) {
+    router.push({ name: RouterName.INFO });
   }
-})
+});
 </script>
 
 <style lang="less" scoped>

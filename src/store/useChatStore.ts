@@ -22,10 +22,6 @@ export enum StateKey {
   CURRENT_CHAT_STATE = "currentChatState",
 }
 export const useChatStore = defineStore("chat", () => {
-  console.log(222);
-  
-  // const store = useUserStore(pinia);
-  // const { userState } = storeToRefs(store);
   const chatStateHistory = ref<ChatState | null>(null);
   const currentChatState = ref<ChatState | null>(null);
   const ws_instance = ref<WebSocketClient | null>(null);
@@ -70,16 +66,6 @@ export const useChatStore = defineStore("chat", () => {
       setChatState(target_user, element, StateKey.CHAT_STATE_HISTORY);
     });
   };
-  // watch(
-  //   userState,
-  //   async (newUser) => {
-  //     if (!newUser) {
-  //       return;
-  //     }
-  //     getAndSetChatStateHistory(newUser.user_name);
-  //   },
-  //   { immediate: true }
-  // );
   return {
     chatStateHistory,
     currentChatState,

@@ -22,6 +22,7 @@ declare module 'vue' {
     ElInput: typeof import('element-plus/es')['ElInput']
     ElMenu: typeof import('element-plus/es')['ElMenu']
     ElMenuItem: typeof import('element-plus/es')['ElMenuItem']
+    ElPopover: typeof import('element-plus/es')['ElPopover']
     ElTableV2: typeof import('element-plus/es')['ElTableV2']
     ElTag: typeof import('element-plus/es')['ElTag']
     ElUpload: typeof import('element-plus/es')['ElUpload']

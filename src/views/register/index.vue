@@ -32,8 +32,8 @@
 
 <script setup lang="ts">
 import { reactive, ref } from "vue";
-import { routerTo } from "@/util/routerTo";
-import { RouterName } from "@/router";
+// import { routerTo } from "@/util/routerTo";
+import router, { RouterName } from "@/router";
 import { registerReq } from "./api";
 import { showTip } from "@/util";
 
@@ -57,12 +57,12 @@ const register = async () => {
   } else {
     showTip(res.msg, "warning");
   }
-  routerTo(RouterName.LOGIN);
+  router.push({ name: RouterName.LOGIN });
 };
 
 const toLogin = () => {
   isAnimation.value = false;
-  routerTo(RouterName.LOGIN);
+  router.push({ name: RouterName.LOGIN });
 };
 </script>
 

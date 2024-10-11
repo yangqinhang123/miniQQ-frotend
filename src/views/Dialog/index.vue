@@ -1,14 +1,19 @@
 <template>
-  <div class="chat-room" @touchstart="recordStartPos" @touchend="handleMoveEnd">
-    <div class="room-header" @click="router.back()">
-      <IconBack size="20px" color="#050505" />
+  <div
+    class="chat-room"
+    @touchstart="recordStartPos"
+    @touchend="handleMoveEnd"
+    @click="currentSelectChatItem = null"
+  >
+    <div class="room-header">
+      <IconBack size="20px" color="#050505" @click="router.back()" />
       <span>{{ target_nickName }}</span>
     </div>
     <div class="room-main">
       <ul class="chat_list-container" ref="chat_list_container">
         <li
           v-for="(item, index) in finalChatList"
-          :key="index"
+          :key="item.id"
           :class="`chat-item ${
             item.from === userState?.user_name ? 'reverse' : ''
           }`"
@@ -22,6 +27,20 @@
                   : target_userAvatar
               "
               fit="fill"
+              @click="
+                routerTo(
+                  RouterName.DETAIL,
+                  item.from === userState?.user_name
+                    ? userState.user_name
+                    : target_userName,
+                  item.from === userState?.user_name
+                    ? userState.nickName
+                    : target_nickName,
+                  item.from === userState?.user_name
+                    ? userState.user_avatar
+                    : target_userAvatar
+                )
+              "
             />
           </div>
           <div class="chat_content-container">
@@ -32,7 +51,30 @@
                   : target_nickName
               }}
             </div>
-            <div
+            <el-popover
+              placement="top-start"
+              :width="100"
+              trigger="hover"
+              :visible="currentSelectChatItem === item"
+            >
+              <template #reference>
+                <!-- <div
+                  class="content"
+                  @click="handleChatItemClick(item, $event)"
+                  @touchstart="handleChatItemTouchStart(item, $event)"
+                  @touchend="handleChatItemTouchEnd(item, $event)"
+                  @touchcancel="handleChatItemTouchCancel(item, $event)"
+                  @contextmenu="handleTextMenu"
+                > -->
+                <div class="content" @click="handleChatItemClick(item, $event)">
+                  {{ item.msg }}
+                </div>
+              </template>
+              <div class="operation">
+                <div @click="deleChatItem(currentSelectChatItem)">删除</div>
+              </div>
+            </el-popover>
+            <!-- <div
               class="content"
               @touchstart="handleChatItemTouchStart(item, $event)"
               @touchend="handleChatItemTouchEnd(item, $event)"
@@ -40,7 +82,7 @@
               @contextmenu="handleTextMenu"
             >
               {{ item.msg }}
-            </div>
+            </div> -->
           </div>
         </li>
       </ul>
@@ -63,15 +105,6 @@
       <div class="other-part"></div>
     </div>
   </div>
-  <el-drawer
-    v-model="drawer"
-    :title="currentSelectChatItem?.msg"
-    direction="btt"
-  >
-    <div>
-      <div @click="deleChatItem(currentSelectChatItem)">删除</div>
-    </div>
-  </el-drawer>
 </template>
 
 <script setup lang="ts">
@@ -94,6 +127,8 @@ import { generateUUID, jsonParse, showTip } from "@/util";
 import { StateKey, useChatStore } from "@/store/useChatStore";
 import { deleChatReq, storageChat, type ChatHistoryType } from "./api";
 import { initWs } from "@/util/initWs";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { RouterName } from "@/router";
 
 const store = useUserStore();
 const chatStore = useChatStore();
@@ -109,7 +144,6 @@ const {
 } = chatStore;
 const { chatStateHistory, currentChatState, ws_instance } =
   storeToRefs(chatStore);
-const drawer = ref(false);
 const longPressTimeoutId = ref<number | null>(null);
 const currentSelectChatItem = ref<ChatHistoryType | null>(null);
 
@@ -152,6 +186,22 @@ const target_userName: string = route.query.user_name as string;
 const target_nickName: string = route.query.nickName as string;
 const target_userAvatar: string = route.query.user_avatar as string;
 
+const routerTo = (
+  routerName: string,
+  user_name: string,
+  nickName: string,
+  user_avatar: string
+) => {
+  router.push({
+    name: routerName,
+    query: {
+      nickName,
+      user_name,
+      user_avatar,
+    },
+  });
+};
+
 /**手指开始触摸时的x坐标位置 */
 let startX = 0;
 /**手指开始触摸时的y坐标位置 */
@@ -180,66 +230,75 @@ const handleMoveEnd = (event: TouchEvent) => {
   const endTime = Date.now();
   isRouteBack(startX, moveEndX, startY, moveEndY, endTime - startTime);
 };
-const handleChatItemTouchStart = (
-  chatItem: ChatHistoryType,
-  event: TouchEvent
-) => {
-  // 在 touchstart 时设置一个定时器
-  longPressTimeoutId.value = setTimeout(() => {
-    event.stopPropagation();
-    event.preventDefault();
-    // 长按触发的逻辑
-    console.log("长按事件触发");
-    longPressCallBack(chatItem);
-    event.preventDefault();
-  }, 500); // 500 毫秒为长按的时间，可以根据需要调整
-};
-const handleChatItemTouchEnd = (
-  chatItem: ChatHistoryType,
-  event: TouchEvent
-) => {
+// const handleChatItemTouchStart = (
+//   chatItem: ChatHistoryType,
+//   event: TouchEvent
+// ) => {
+//   // 在 touchstart 时设置一个定时器
+//   longPressTimeoutId.value = setTimeout(() => {
+//     // 长按触发的逻辑
+//     console.log("长按事件触发");
+//     longPressCallBack(chatItem);
+//     event.preventDefault();
+//   }, 500); // 500 毫秒为长按的时间，可以根据需要调整
+// };
+// const handleChatItemTouchEnd = (
+//   chatItem: ChatHistoryType,
+//   event: TouchEvent
+// ) => {
+//   clearTimeout(longPressTimeoutId.value as number);
+// };
+// const handleChatItemTouchCancel = (
+//   chatItem: ChatHistoryType,
+//   event: TouchEvent
+// ) => {
+//   clearTimeout(longPressTimeoutId.value as number);
+// };
+// const handleTextMenu = (e: MouseEvent) => {
+//   // e.preventDefault();
+// };
+// const longPressCallBack = (chatItem: ChatHistoryType) => {
+//   currentSelectChatItem.value = chatItem;
+// };
+const handleChatItemClick = (chatItem: ChatHistoryType, event: MouseEvent) => {
   event.stopPropagation();
-  event.preventDefault();
-  clearTimeout(longPressTimeoutId.value as number);
-};
-const handleChatItemTouchCancel = (
-  chatItem: ChatHistoryType,
-  event: TouchEvent
-) => {
-  event.stopPropagation();
-  event.preventDefault();
-  clearTimeout(longPressTimeoutId.value as number);
-};
-const handleTextMenu = (e: MouseEvent) => {
-  e.preventDefault();
-};
-const longPressCallBack = (chatItem: ChatHistoryType) => {
-  drawer.value = true;
   currentSelectChatItem.value = chatItem;
 };
 const deleChatItem = (chatItem: ChatHistoryType | null) => {
-  if (!chatItem) {
-    return;
-  }
-  const thisHistoryState = chatStateHistory.value?.[target_userName];
-  const thisCurrentChatState = currentChatState.value?.[target_userName];
-  thisCurrentChatState?.forEach((item) => {
-    if (item.id === chatItem.id) {
-      item.is_del = 1;
-    }
-  });
-  thisHistoryState?.forEach(async (item) => {
-    if (item.id === chatItem.id) {
-      deleChatReq(item.id);
-      if (currentChatState.value) {
-        await storageChat(currentChatState.value[target_userName]);
+  ElMessageBox.confirm("你确定要删除吗?")
+    .then(() => {
+      if (!chatItem) {
+        return;
       }
-      clearCurrentChatState();
-      if (userState.value) {
-        getAndSetChatStateHistory(userState.value.user_name);
-      }
-    }
-  });
+      const thisHistoryState = chatStateHistory.value?.[target_userName];
+      const thisCurrentChatState = currentChatState.value?.[target_userName];
+      thisCurrentChatState?.forEach((item) => {
+        if (item.id === chatItem.id) {
+          if (userState.value?.user_name === chatItem.from) {
+            item.from_del = 1;
+          } else if (userState.value?.user_name === chatItem.to) {
+            item.to_del = 1;
+          }
+          // item.is_del = 1;
+        }
+      });
+      thisHistoryState?.forEach(async (item) => {
+        if (item.id === chatItem.id) {
+          await deleChatReq(item.id);
+          if (currentChatState.value) {
+            await storageChat(currentChatState.value[target_userName]);
+          }
+          clearCurrentChatState();
+          if (userState.value) {
+            await getAndSetChatStateHistory(userState.value.user_name);
+          }
+        }
+      });
+    })
+    .catch((err) => {
+      // catch error
+      console.log(err);
+    });
 };
 /**
  * 判断是否要回退到上一个路由
@@ -272,14 +331,25 @@ const isRouteBack = (
 // });
 const finalChatList = ref<ChatHistoryType[]>([]);
 watchEffect(() => {
+  console.log(chatStateHistory.value?.[target_userName]);
+  console.log(currentChatState.value?.[target_userName]);
+
   const thisHistoryState = chatStateHistory.value?.[target_userName];
   const thisCurrentChatState = currentChatState.value?.[target_userName];
-  console.log('变了');
-  
+  console.log("变了");
+
   finalChatList.value = [
     ...(thisHistoryState || []),
     ...(thisCurrentChatState || []),
-  ].filter((item) => !item.is_del);
+  ].filter((item) => {
+    if (item.from === userState.value?.user_name && item.from_del === 1) {
+      return false;
+    } else if (item.to === userState.value?.user_name && item.to_del === 1) {
+      return false;
+    }
+    return true;
+  });
+  console.log(finalChatList);
 });
 
 // watch(() => chatStateHistory.value, (newValue, oldValue) => {
@@ -323,7 +393,8 @@ const send = () => {
       from: userState.value.user_name,
       to: target_userName,
       msg: input.value,
-      is_del: 0,
+      from_del: 0,
+      to_del: 0,
     },
   } as ChatMsgType;
   ws_instance.value?.send(JSON.stringify(msg));
@@ -349,6 +420,7 @@ const send = () => {
   gap: 20px;
   background-color: #f7f7f7;
   // border-bottom: 2px;
+  padding-top: 40px;
 }
 .room-footer {
   // border-top: 2px;
@@ -427,5 +499,19 @@ const send = () => {
 }
 .reverse {
   flex-direction: row-reverse;
+}
+
+.drawer-content {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.operation {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="contact-item" @click="routerTo(RouterName.DIALOG)">
+  <div class="contact-item" @click="routerTo(routerName)">
     <div class="avatar">
       <el-avatar :size="50" :src="avatarUrl" fit="fill" />
     </div>
@@ -9,7 +9,6 @@
 
 <script setup lang="ts">
 import { RouterName } from "@/router";
-import { onMounted } from "vue";
 import { useRouter } from "vue-router";
 // import { routerTo } from "@/util/routerTo";
 interface contactItemPropsType {
@@ -19,11 +18,15 @@ interface contactItemPropsType {
   contactName: string;
   /**联系人qq号 */
   contactUserName: string;
+  /**点击后要跳转的路由。目前仅支持跳转到聊天页面和用户详情页面 */
+  routerName: RouterName.DIALOG | RouterName.DETAIL;
 }
 const router = useRouter();
-const { avatarUrl, contactName, contactUserName } =
+const { avatarUrl, contactName, contactUserName, routerName } =
   defineProps<contactItemPropsType>();
 const routerTo = (routerName: string) => {
+  console.log(routerName);
+
   router.push({
     name: routerName,
     query: {

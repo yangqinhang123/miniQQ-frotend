@@ -13,6 +13,7 @@ export enum RouterName {
   CHANNELS = "channels",
   LOGIN = "login",
   REGISTER = "register",
+  DETAIL = "detail",
 }
 /**
  * 以下路由路径不采用动画切换路由（后续可添加）
@@ -61,6 +62,11 @@ export const routes: RouteRecordRaw[] = [
     ],
   },
   {
+    path: "/Detail",
+    name: RouterName.DETAIL,
+    component: () => import("@/views/userDetail/userDetail.vue"),
+  },
+  {
     path: "/Dialog",
     name: RouterName.DIALOG,
     component: () => import("@/views/Dialog/index.vue"),
@@ -86,6 +92,7 @@ router.beforeEach((to, from, next) => {
   if (to.path == "/") next();
   else if (to.name == "404") next();
   else if (to.name === RouterName.LOGIN) next();
+  else if (to.name === RouterName.REGISTER) next();
   else if (to.matched.length === 0) {
     //如果未匹配到路由
     console.log("未匹配到路由，来自", from.path, "去往", to.path);
