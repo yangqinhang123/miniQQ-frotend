@@ -147,14 +147,12 @@ export class WebSocketClient extends EventDispatcher {
   }
 }
 
-// export default new WebSocketClient("ws://192.168.121.176:3000/mySocketUrl");
-
 export interface ChatMsgType {
   type: "chat";
   data: ChatHistoryType;
 }
 
 export interface MsgType {
-  type: "chat" | "tip";
+  type: "chat" | "error";
   data: any;
 }

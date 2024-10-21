@@ -4,6 +4,8 @@ import { WebSocketClient, type ChatMsgType, type MsgType } from "../WebSocket";
 import { useChatStore } from "@/store/useChatStore";
 import pinia from "@/store/store";
 import { logout } from "../logout";
+import { ElMessageBox } from "element-plus";
+import localStore from "../LocalStore";
 const chatStore = useChatStore(pinia);
 const { setChatState, setWsInstance } = chatStore;
 const getInitWsFn = () => {
@@ -12,6 +14,11 @@ const getInitWsFn = () => {
   /**websocket实例 */
   let ws: WebSocketClient;
   return {
+    /**
+     * 初始化ws实例和回调
+     * @param user_name 当前登录的用户名
+     * @returns 
+     */
     initWs(user_name: string) {
       if (isInit) {
         return;
@@ -34,11 +41,21 @@ const getInitWsFn = () => {
           setChatState(res.data.from, res.data, StateKey.CURRENT_CHAT_STATE);
           // currentChatList.value.push(jsonParse<ChatMsgType>(e.data).data);
         }
-        if (res.type === "tip") {
-          showTip(res.data.msg, res.data.msgType);
-          if (res.data.msgType === "error") {
-            logout();
-          }
+        if (res.type === "error") {
+          // showTip(res.data.msg, res.type);
+
+          //退出登录
+          localStore.removeItem("token");
+          destoryWs();
+          ElMessageBox.alert(res.data.msg, {
+            confirmButtonText: "确认",
+          }).finally(() => {
+            window.location.assign("/");
+          });
+
+          // if (res.data.msgType === "error") {
+          //   logout();
+          // }
         }
       });
       setWsInstance(ws);
