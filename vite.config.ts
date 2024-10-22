@@ -30,7 +30,8 @@ export default defineConfig({
     },
   },
   server: {
-    host: '192.168.121.176',
+    // host: '192.168.121.176',
+    host: 'localhost',
     port: 8888,
     // open: true
     proxy: {
