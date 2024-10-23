@@ -36,7 +36,7 @@ export default defineConfig({
     // open: true
     proxy: {
       '/api': {
-        target: 'http://192.168.121.176:3000',
+        target: 'http://localhost:3000',
         changeOrigin: true, // 是否更改请求头中的 Origin
       }
     }
