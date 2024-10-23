@@ -1,6 +1,8 @@
 <template>
   <ul class="infinite-list" :style="{ overflow: 'auto', gap: gap + 'px' }">
+    <el-empty description="还未添加好友噢！" v-if="contactList.length === 0" image="/images/linghua.jpg" style="width: 100%; height: 100%;"/>
     <ContactItem
+      v-else
       v-for="(i, index) in contactList"
       :key="index"
       :avatar-url="i.user_avatar"
