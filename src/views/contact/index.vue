@@ -65,7 +65,7 @@
 
 <script setup lang="ts">
 import IconSearch from "@/components/icons/IconSearch.vue";
-import { inject, reactive, ref } from "vue";
+import { getCurrentInstance, inject, reactive, ref } from "vue";
 import { ElMessageBox } from "element-plus";
 import { debounce } from "@/hooks/debounce";
 import { addContactReq, searchUser, type SearchUserResType } from "./api";
@@ -74,7 +74,6 @@ import { useUserStore } from "@/store/userStore";
 import { storeToRefs } from "pinia";
 import ContactList from "../infoList/component/ContactList.vue";
 import { RouterName } from "@/router";
-import { contactListKey, type ContactListFlagType } from "@/util/provideKey";
 const store = useUserStore();
 type state = {
   input: string;
@@ -91,9 +90,9 @@ const currentSelected = ref<SearchUserResType | null>(null);
 const setCurrentSelected = (value: SearchUserResType | null) => {
   currentSelected.value = value;
 };
-const { setIsNeedToUpdateContactList } = inject(
-  contactListKey
-) as ContactListFlagType;
+const cxt = getCurrentInstance(); //相当于Vue2中的this
+const bus = cxt?.appContext.config.globalProperties.$bus;
+
 const handleClose = () => {
   state.input = "";
   setCurrentSelected(null);
@@ -127,7 +126,7 @@ const addContact = async () => {
     );
     if (res.isOk) {
       showTip(res.msg, "success");
-      setIsNeedToUpdateContactList(true);
+      bus.emit('updateContactList')
     } else {
       showTip(res.msg, "warning");
     }

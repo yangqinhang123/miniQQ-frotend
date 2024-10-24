@@ -10,8 +10,10 @@ import router from './router'
 import Vant from 'vant';
 import 'vant/lib/index.css'
 import 'element-plus/dist/index.css';
+import mitt from 'mitt'
+const bus = mitt()
 const app = createApp(App)
-
+app.config.globalProperties.$bus = bus
 app.use(pinia)
 app.use(router)
 app.use(Vant)

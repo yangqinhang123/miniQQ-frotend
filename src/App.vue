@@ -12,7 +12,6 @@ import { RouterName } from "./router";
 import pinia from "./store/store";
 import { useChatStore } from "./store/useChatStore";
 import { logout } from "./util/logout";
-import { contactListKey } from "./util/provideKey";
 const { transitionName } = useGetTransitionName();
 const router = useRouter();
 const route = useRoute();
@@ -41,33 +40,7 @@ onMounted(async () => {
     }
     router.push({ name: RouterName.INFO });
   }
-  //  else {
-  //   console.log("app.vue - 未登录");
-  //   if (route.path === "/") {
-  //     console.log(111);
-
-  //     return;
-  //   } else {
-  //     window.location.assign("/login");
-  //   }
-  // }
 });
-
-const isNeedToUpdateContactList = ref(false);
-const setIsNeedToUpdateContactList = (value: boolean) => {
-  isNeedToUpdateContactList.value = value;
-};
-
-provide(contactListKey, {
-  isNeedToUpdateContactList,
-  setIsNeedToUpdateContactList,
-});
-watch(() => transitionName.value, (newValue) => {
-  console.log('变了 --');
-  
-  console.log(newValue);
-  
-})
 </script>
 
 <template>

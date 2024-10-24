@@ -1,6 +1,11 @@
 <template>
   <ul class="infinite-list" :style="{ overflow: 'auto', gap: gap + 'px' }">
-    <el-empty description="还未添加好友噢！" v-if="contactList.length === 0" image="/images/linghua.jpg" style="width: 100%; height: 100%;"/>
+    <el-empty
+      description="还未添加好友噢！"
+      v-if="contactList.length === 0"
+      image="/images/linghua.jpg"
+      style="width: 100%; height: 100%"
+    />
     <ContactItem
       v-else
       v-for="(i, index) in contactList"
@@ -14,14 +19,22 @@
 </template>
 
 <script setup lang="ts">
-import { inject, nextTick, onMounted, reactive, ref, watch } from "vue";
+import {
+  getCurrentInstance,
+  inject,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import ContactItem from "./ContactItem.vue";
 import { queryContactListReq, type QueryContactListResType } from "../api";
 import { useUserStore } from "@/store/userStore";
 import { storeToRefs } from "pinia";
 import { showTip } from "@/util";
 import type { RouterName } from "@/router";
-import { contactListKey, type ContactListFlagType } from "@/util/provideKey";
 interface props {
   /**每项之间的间距，单位为px */
   gap: number;
@@ -37,12 +50,19 @@ const contactList = ref<QueryContactListResType[]>([]);
 // });
 const setContactList = async () => {
   const res = await queryContactListReq();
-  //   state.contactList = res;
   contactList.value = res;
 };
-const { isNeedToUpdateContactList, setIsNeedToUpdateContactList } = inject(
-  contactListKey
-) as ContactListFlagType;
+
+const cxt = getCurrentInstance();
+const bus = cxt?.appContext.config.globalProperties.$bus;
+onMounted(() => {
+  bus.on("updateContactList", () => {
+    setContactList();
+  });
+});
+onBeforeUnmount(() => {
+  bus.off("updateContactList");
+});
 watch(
   () => userState.value?.user_name,
   async () => {
@@ -52,7 +72,6 @@ watch(
         contactList.value = [];
         return;
       }
-      //   await setContactList();
       const res = await queryContactListReq();
       contactList.value = res;
     } catch (error) {
@@ -61,30 +80,6 @@ watch(
     }
   },
   { immediate: true }
-);
-// onMounted(() => {
-//   nextTick(async () => {
-//     try {
-//       if (!userState.value) {
-//         console.log("名字空空");
-//         contactList.value = [];
-//         return;
-//       }
-//       await setContactList();
-//     } catch (error) {
-//       console.log(error);
-//       showTip("获取联系人列表失败", "error");
-//     }
-//   });
-// });
-watch(
-  () => isNeedToUpdateContactList.value,
-  (newValue) => {
-    if (newValue) {
-      setContactList();
-      setIsNeedToUpdateContactList(false);
-    }
-  }
 );
 </script>
 

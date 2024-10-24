@@ -30,7 +30,10 @@
       >
     </div>
   </div>
-  <el-dialog v-model="dialogVisible" style="width: 70%; display: flex; flex-direction: column; gap: 20px;">
+  <el-dialog
+    v-model="dialogVisible"
+    style="width: 70%; display: flex; flex-direction: column; gap: 20px"
+  >
     <div
       style="
         width: 100%;
@@ -60,8 +63,7 @@ import { useRoute, useRouter } from "vue-router";
 import IconBack from "@/components/icons/IconBack.vue";
 import { RouterName } from "@/router";
 import { deleContactReq } from "./api";
-import { inject, ref } from "vue";
-import { contactListKey, type ContactListFlagType } from "@/util/provideKey";
+import { getCurrentInstance, inject, ref } from "vue";
 import { ElMessageBox } from "element-plus";
 const route = useRoute();
 const router = useRouter();
@@ -69,9 +71,8 @@ const target_userName: string = route.query.user_name as string;
 const target_nickName: string = route.query.nickName as string;
 const target_userAvatar: string = route.query.user_avatar as string;
 const dialogVisible = ref(false);
-const { setIsNeedToUpdateContactList } = inject(
-  contactListKey
-) as ContactListFlagType;
+const cxt = getCurrentInstance();
+const bus = cxt?.appContext.config.globalProperties.$bus;
 const routerTo = (routerName: string) => {
   router.push({
     name: routerName,
@@ -85,7 +86,7 @@ const routerTo = (routerName: string) => {
 const deleContact = async () => {
   await deleContactReq(target_userName);
   dialogVisible.value = false;
-  setIsNeedToUpdateContactList(true);
+  bus.emit("updateContactList");
   router.back();
 };
 </script>
@@ -121,7 +122,7 @@ const deleContact = async () => {
   }
 }
 .dialog-footer {
-    display: flex;
-    justify-content: space-around;
+  display: flex;
+  justify-content: space-around;
 }
 </style>

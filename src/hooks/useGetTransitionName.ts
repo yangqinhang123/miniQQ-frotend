@@ -24,11 +24,6 @@ export function useGetTransitionName() {
       const fromDepth = routes.findIndex(
         (v: RouteRecordRaw) => v.path === from
       );
-      console.log(fromDepth);
-      
-      console.log(toDepth);
-      console.log(toDepth > fromDepth ? "go" : "back");
-      
       transitionName.value = toDepth > fromDepth ? "go" : "back";
     }
   );
