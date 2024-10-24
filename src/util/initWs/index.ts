@@ -6,6 +6,7 @@ import pinia from "@/store/store";
 import { logout } from "../logout";
 import { ElMessageBox } from "element-plus";
 import localStore from "../LocalStore";
+import { yourIp } from "@/lib/config";
 const chatStore = useChatStore(pinia);
 const { setChatState, setWsInstance } = chatStore;
 const getInitWsFn = () => {
@@ -25,7 +26,7 @@ const getInitWsFn = () => {
       }
       // 创建websocket实例，同时将当前用户名当作参数传递，方便后端存储各个用户的websocket实例
       ws = new WebSocketClient(
-        `ws://192.168.121.176:3000/mySocketUrl?user_name=${user_name}`
+        `ws://${yourIp}:3000/mySocketUrl?user_name=${user_name}`
       );
       /**websocket连接 */
       ws.connect();

@@ -14,7 +14,6 @@ import MyRequest, {
 import type { OtherDownloadReq } from "@/api/types/other";
 import localStore from "../LocalStore";
 import { ResCode, type ResponseData } from "./code";
-import { next_reqBaseURL } from "@/lib/config";
 import { logout } from "../logout";
 /**前端专属的类 */
 class FrontRequest extends MyRequest {
@@ -69,7 +68,7 @@ class FrontRequest extends MyRequest {
 }
 /**默认的Request实例，给前端使用, 用来请求自己的Nextjs后端。 注：根路径为 /api */
 const request = new FrontRequest(
-  { baseURL: next_reqBaseURL, timeout: 100 * 1000 },
+  { baseURL: import.meta.env.VITE_URL, timeout: 100 * 1000 },
   (config) => {
     const urlArr = config.url?.split("/") || [];
 
