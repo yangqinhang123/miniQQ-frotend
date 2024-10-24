@@ -26,8 +26,9 @@ const getInitWsFn = () => {
       }
       // 创建websocket实例，同时将当前用户名当作参数传递，方便后端存储各个用户的websocket实例
       ws = new WebSocketClient(
-        `ws://${yourIp}:3000/mySocketUrl?user_name=${user_name}`
+        `ws://${import.meta.env.VITE_IP}:3000/mySocketUrl?user_name=${user_name}`
       );
+      console.log('ws连接，路径：', `ws://${import.meta.env.VITE_IP}:3000/mySocketUrl?user_name=${user_name}`);  
       /**websocket连接 */
       ws.connect();
       /**处理接收消息逻辑 */
