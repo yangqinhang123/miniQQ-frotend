@@ -13,7 +13,7 @@
           placeholder="请输入好友qq号"
           :oninput="handleInputWithDebounce"
         />
-        <el-empty v-if="!state.searchRes.length" description="暂无内容哦！" />
+        <el-empty v-if="!state.searchRes.length" description="你还没找朋友哦！" image="/images/jiyi.jpeg"/>
         <div v-else class="search-res">
           <div
             v-for="(i, index) in state.searchRes"
