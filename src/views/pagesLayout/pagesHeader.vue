@@ -61,8 +61,7 @@
         :show-file-list="false"
         ref="UploadRef"
         class="avatar-uploader"
-        accept=".jpg,.jpeg,.png,.webp"
-        :multiple="true"
+        accept="image/*"
       >
         <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
         <template #tip>
