@@ -80,7 +80,13 @@
     </div>
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="showUploadAvatar = false">取消</el-button>
+        <el-button
+          @click="
+            showUploadAvatar = false;
+            previewUrl = '';
+          "
+          >取消</el-button
+        >
         <el-button type="primary" @click="showUploadAvatar = false">
           确认
         </el-button>
