@@ -21,7 +21,6 @@ const { userState } = storeToRefs(store);
 const { setUserState } = store;
 const { getAndSetChatStateHistory } = chatStore;
 onMounted(async () => {
-  
   if (localStore.getItem("token")) {
     console.log("app.vue - 已登录");
 
@@ -38,7 +37,6 @@ onMounted(async () => {
       initWs(userState.value.user_name);
       getAndSetChatStateHistory(userState.value.user_name);
     }
-    router.push({ name: RouterName.INFO });
   }
 });
 </script>
@@ -46,9 +44,10 @@ onMounted(async () => {
 <template>
   <div class="app-main">
     <RouterView v-slot="{ Component }">
-      <Transition :name="transitionName">
+      <Transition :name="transitionName" v-if="transitionName !== ''">
         <component :is="Component" />
       </Transition>
+      <component :is="Component" v-else />
     </RouterView>
   </div>
 </template>
